@@ -2,7 +2,7 @@ function love.load()
   require "rectangle"
   require "circle"
   r1 = Rectangle(100, 100, 200, 50)
-  r2 = Circle(180, 300, 50)
+  r2 = Circle(150, 300, 100)
 
 end
 
