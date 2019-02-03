@@ -1,92 +1,53 @@
+-- Collision
+
 function love.load()
-
-  -- Load image for the tileset and use quads
-  image = love.graphics.newImage("tileset.png")
-
-  -- Get the width and heigh of tileset
-  local image_width = image:getWidth()
-  local image_height = image:getHeight()
-
-  -- Width and Height of each tile?
-  -- 32x32. But say we don't know it. We use number of rows and columns
-  -- in the tileset! (2 rows, 3 columns in tileset)
-  width = (image_width / 3) - 2
-  height = (image_height / 2) - 2
-
-  -- Create quads
-  quads = {}
-
-  for i = 0,1 do
-    for j = 0,2 do
-      quad = love.graphics.newQuad(1 + j * (width + 2), 1 + i * (height + 2), width, height, image_width, image_height)
-      table.insert(quads, quad)
-    end
-  end
-
-  tilemap = {
-    {1, 6, 6, 2, 1, 6, 6, 2},
-    {3, 0, 0, 4, 5, 0, 0, 3},
-    {3, 0, 0, 0, 0, 0, 0, 3},
-    {4, 2, 0, 0, 0, 0, 1, 5},
-    {1, 5, 0, 0, 0, 0, 4, 2},
-    {3, 0, 0, 0, 0, 0, 0, 3},
-    {3, 0, 0, 1, 2, 0, 0, 3},
-    {4, 6, 6, 5, 4, 6, 6, 5}
-  }
-
-  -- Player
-  player = {
-    image = love.graphics.newImage('player.png'),
-    -- player's position on our tilemap
-    -- multiply by tile width and height when drawn
-    tile_x = 2,
-    tile_y = 2
-  }
+  -- create 2 rectangles
+  require "rectangle"
+  r1 = Rectangle(10, 100, 100, 100)
+  r2 = Rectangle(250, 120, 150, 120)
 end
 
-
 function love.update(dt)
-  -- body
+  r1.x = r1.x + 100 * dt
 end
 
 function love.draw()
-  for i,row in ipairs(tilemap) do
-    for j,tile in ipairs(row) do
-      if tile ~= 0 then
-        --Draw the image with the correct quad
-        love.graphics.draw(image, quads[tile], j * width, i * height)
-      end 
-    end
+  local mode
+  if checkCollision(r1, r2) then
+    mode = "fill"
+  else
+    mode = "line"
   end
-
-  -- Draw the player on top
-  love.graphics.draw(player.image, player.tile_x * width, player.tile_y * height)
+  r1:draw(mode)
+  r2:draw(mode)
 end
 
--- Make the player jump when a key is pressed
-function love.keypressed(key)
-  local x = player.tile_x
-  local y = player.tile_y
-  if key == "left" then
-    if isEmpty(x - 1, y) then
-      player.tile_x = x - 1
-    end
-  elseif key == "right" then
-    if isEmpty(x + 1, y) then
-      player.tile_x = x + 1
-    end
-  elseif key == "up" then
-    if isEmpty(x, y - 1) then
-      player.tile_y = y - 1
-    end
-  elseif key == "down" then
-    if isEmpty(x, y + 1) then
-      player.tile_y = y + 1
-    end
-  end
-end
+-- Helper utility to check collisions for rectangles
+function checkCollision(a, b)
+  -- This function will be accurate regardless of the order
+  -- of the rectangles a and b.
 
-function isEmpty(x, y)
-  -- y = row, x == column
-  return tilemap[y][x] == 0
+  -- Lua convention to use underscores for local variables
+  local a_left = a.x
+  local a_right = a.x + a.width
+  local a_top = a.y
+  local a_bottom = a.y + a.height
+
+
+  local b_left = b.x
+  local b_right = b.x + b.width
+  local b_top = b.y
+  local b_bottom = b.y + b.height
+
+  -- We now check for collisions. There are 4 conditions that need
+  -- to be satisfied for there to be a collision between 2 rectangles
+  if a_right > b_left and   -- a's right side is to the right of b's left
+     a_left < b_right and   -- a's left side is to the left of b's right
+     a_bottom > b_top and   -- a's bottom side is to the bottom of b's top
+     a_top < b_bottom then  -- a's top side is to the top of b's bottom
+    -- there is a collision
+    return true
+  else
+    return false
+  end
 end
